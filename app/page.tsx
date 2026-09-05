@@ -36,7 +36,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:100}}>
+    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:120}}>
 
       {/* HEADER */}
       <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
@@ -81,54 +81,63 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          {filtered.length === 0 && <p style={{textAlign:'center', color:'white', marginTop:40}}>Lagu tidak ditemukan 😢</p>}
         </div>
       </div>
 
-      {/* PLAYER BAWAH VERSI PRO */}
+      {/* PLAYER BAWAH PAKE ICON SVG */}
       {playing && (
         <div style={{
           position:'fixed', bottom:0, left:0, right:0,
-          background:'rgba(255,255,255,0.95)', backdropFilter:'blur(15px)',
-          padding:'12px 20px', display:'flex', alignItems:'center', gap:16,
-          boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894'
+          background:'rgba(255,255,255,0.98)', backdropFilter:'blur(15px)',
+          padding:'10px 16px',
+          boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894',
+          display:'flex', flexDirection:'column', gap:8
         }}>
-          <img src={playing.cover_url} style={{width:56, height:56, borderRadius:10}}/>
 
-          <div style={{flex:1, minWidth:0}}>
-            {/* JUDUL DIKECILIN JADI 1 BARIS */}
-            <p style={{
-              margin:0, fontSize:14, fontWeight:700, color:'#00b894',
-              whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
-            }}>
-              {playing.judul}
-            </p>
-            <p style={{margin:0, fontSize:12, color:'#666'}}>Streamo AI</p>
+          {/* BARIS 1: COVER + JUDUL */}
+          <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <img src={playing.cover_url} style={{width:48, height:48, borderRadius:8}}/>
+            <div style={{flex:1, minWidth:0}}>
+              <p style={{
+                margin:0, fontSize:13, fontWeight:700, color:'#00b894',
+                whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
+              }}>{playing.judul}</p>
+              <p style={{margin:0, fontSize:11, color:'#666'}}>Streamo AI</p>
+            </div>
           </div>
 
-          {/* TOMBOL PREV PLAY NEXT */}
-          <div style={{display:'flex', alignItems:'center', gap:12}}>
-            <button onClick={playPrev} style={{background:'none', border:'none', fontSize:22, cursor:'pointer', color:'#00b894'}}>⏮️</button>
+          {/* BARIS 2: TOMBOL ICON SVG */}
+          <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:20}}>
+
+            {/* PREV BUTTON */}
+            <button onClick={playPrev} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
+                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+              </svg>
+            </button>
 
             <audio
               ref={audioRef}
               controls
               autoPlay
               onEnded={playNext}
-              style={{width:200, height:35, accentColor:'#00b894'}}
+              style={{width:'60%', maxWidth:300, height:32, accentColor:'#00b894'}}
               src={playing.mp3_url}
             ></audio>
 
-            <button onClick={playNext} style={{background:'none', border:'none', fontSize:22, cursor:'pointer', color:'#00b894'}}>⏭️</button>
+            {/* NEXT BUTTON */}
+            <button onClick={playNext} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+              </svg>
+            </button>
           </div>
         </div>
       )}
 
-      {/* FOOTER */}
       <footer style={{background:'rgba(0,0,0,0.15)', color:'white', textAlign:'center', padding:16, marginTop:30, fontSize:14}}>
         <p>© 2026 Streamo AI by ZIIPROJECT</p>
       </footer>
     </div>
   )
-          }
+      }

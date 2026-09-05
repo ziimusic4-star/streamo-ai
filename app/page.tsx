@@ -18,11 +18,18 @@ export default function Home() {
   const [playlists, setPlaylists] = useState<{[key:string]: string[]}>({})
   const [activePlaylist, setActivePlaylist] = useState<string | null>(null)
   const [showPlaylistModal, setShowPlaylistModal] = useState(false)
-  const [showAddToPlaylist, setShowAddToPlaylist] = useState<string | null>(null) // id lagu yg kebuka menu
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState<string | null>(null)
   const [newPlaylistName, setNewPlaylistName] = useState('')
   const [isShuffle, setIsShuffle] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
+  const [toast, setToast] = useState<string | null>(null) // state notifikasi baru
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  // FUNCTION TOAST
+  const showToast = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2000) // hilang 2 detik
+  }
 
   useEffect(() => {
     const fav = localStorage.getItem('streamo_favorites')
@@ -122,11 +129,13 @@ export default function Home() {
     audio.currentTime = percent * audio.duration
   }
 
-  const toggleFavorite = (id: string, e: any) => {
+  const toggleFavorite = (id: string, judul: string, e: any) => {
     e.stopPropagation()
+    const isFav = favorites.includes(id)
     setFavorites(prev =>
-      prev.includes(id)? prev.filter(f => f!== id) : [...prev, id]
+      isFav? prev.filter(f => f!== id) : [...prev, id]
     )
+    showToast(isFav? `Dihapus dari Favorit` : `Ditambahkan ke Favorit: ${judul}`)
   }
 
   const createPlaylist = () => {
@@ -134,21 +143,31 @@ export default function Home() {
     setPlaylists(prev => ({...prev, [newPlaylistName]: []}))
     setNewPlaylistName('')
     setShowPlaylistModal(false)
+    showToast(`Playlist "${newPlaylistName}" dibuat`)
   }
 
-  const toggleAddToPlaylist = (songId: string, playlistName: string) => {
-    setPlaylists(prev => {
-      const current = prev[playlistName] || []
-      const isIn = current.includes(songId)
-      return {
-      ...prev,
-        [playlistName]: isIn? current.filter(id => id!== songId) : [...current, songId]
-      }
-    })
+  const toggleAddToPlaylist = (songId: string, judul: string, playlistName: string) => {
+    const isIn = playlists[playlistName]?.includes(songId)
+    setPlaylists(prev => ({
+    ...prev,
+      [playlistName]: isIn? prev[playlistName].filter(id => id!== songId) : [...prev[playlistName], songId]
+    }))
+    showToast(isIn? `Dihapus dari ${playlistName}` : `Ditambahkan ke ${playlistName}: ${judul}`)
   }
 
   return (
     <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:95}} onClick={()=>setShowAddToPlaylist(null)}>
+
+      {/* TOAST NOTIFIKASI */}
+      {toast && (
+        <div style={{
+          position:'fixed', top:20, right:20, background:'rgba(0,0,0,0.8)', color:'white',
+          padding:'10px 16px', borderRadius:8, zIndex:999, fontSize:13, fontWeight:500,
+          animation:'slideIn 0.3s ease', backdropFilter:'blur(10px)'
+        }}>
+          {toast}
+        </div>
+      )}
 
       <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
         <div style={{maxWidth:1200, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
@@ -157,6 +176,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* TABS TANPA JUMLAH */}
       <div style={{maxWidth:1200, margin:'0 auto', padding:'20px 20px 0'}}>
         <div style={{display:'flex', gap:10, background:'rgba(255,255,255,0.2)', padding:4, borderRadius:12, marginBottom:10}}>
           <button onClick={()=>{setTab('semua'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='semua'? 'white' : 'transparent', color: tab==='semua'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
@@ -165,7 +185,7 @@ export default function Home() {
           </button>
           <button onClick={()=>{setTab('favorit'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='favorit'? 'white' : 'transparent', color: tab==='favorit'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            Favorit ({favorites.length})
+            Favorit
           </button>
           <button onClick={()=>{setTab('playlist'); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='playlist'? 'white' : 'transparent', color: tab==='playlist'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
@@ -206,19 +226,16 @@ export default function Home() {
             {filtered.map((i, index)=>(
               <div key={i.id} onClick={()=>{setPlayingIndex(index); setIsPlaying(true)}} style={{background:'white', borderRadius:14, padding:12, boxShadow:'0 6px 15px rgba(0,0,0,0.15)', cursor:'pointer', border: playingIndex === index? '2px solid #00b894' : '2px solid transparent', position:'relative'}}>
 
-                {/* MENU ATAS KAN */}
                 <div style={{position:'absolute', top:12, right:12, display:'flex', gap:5}}>
-                  <button onClick={(e)=>toggleFavorite(i.id, e)} style={{background:'rgba(255,255,255,0.9)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                  <button onClick={(e)=>toggleFavorite(i.id, i.judul, e)} style={{background:'rgba(255,255,255,0.9)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
                     {favorites.includes(i.id)? <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
                   </button>
 
-                  {/* TOMBOL... BARU */}
                   <div style={{position:'relative'}}>
                     <button onClick={(e)=>{e.stopPropagation(); setShowAddToPlaylist(showAddToPlaylist === i.id? null : i.id)}} style={{background:'rgba(255,255,255,0.9)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="#666"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                     </button>
 
-                    {/* POPOVER PLAYLIST */}
                     {showAddToPlaylist === i.id && (
                       <div onClick={(e)=>e.stopPropagation()} style={{position:'absolute', right:0, top:35, background:'white', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.2)', padding:8, width:180, zIndex:10}}>
                         <p style={{margin:'0 0 8px', fontSize:12, fontWeight:600, color:'#00b894'}}>Tambah ke Playlist</p>
@@ -229,7 +246,7 @@ export default function Home() {
                               <input
                                 type="checkbox"
                                 checked={playlists[name].includes(i.id)}
-                                onChange={()=>toggleAddToPlaylist(i.id, name)}
+                                onChange={()=>toggleAddToPlaylist(i.id, i.judul, name)}
                               />
                               {name}
                             </label>

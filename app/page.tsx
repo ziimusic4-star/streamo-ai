@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -10,7 +10,8 @@ const supabase = createClient(
 export default function Home() {
   const [lagu, setLagu] = useState<any[]>([])
   const [search, setSearch] = useState('')
-  const [playing, setPlaying] = useState<any>(null)
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     supabase.from('lagu').select('*').then(({data})=>{
@@ -18,63 +19,116 @@ export default function Home() {
     })
   }, [])
 
-  const filtered = lagu.filter(l => 
+  const filtered = lagu.filter(l =>
     l.judul.toLowerCase().includes(search.toLowerCase())
   )
 
+  const playing = playingIndex!== null? filtered[playingIndex] : null
+
+  const playNext = () => {
+    if(playingIndex === null) return
+    setPlayingIndex((playingIndex + 1) % filtered.length)
+  }
+
+  const playPrev = () => {
+    if(playingIndex === null) return
+    setPlayingIndex((playingIndex - 1 + filtered.length) % filtered.length)
+  }
+
   return (
-    <div style={{background:'#121212', minHeight:'100vh', color:'white', fontFamily:'Poppins, sans-serif', paddingBottom:90}}>
-      
+    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:100}}>
+
       {/* HEADER */}
-      <header style={{background:'#000', padding:'16px 24px', position:'sticky', top:0, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <img src="https://tfiihtfbilhyobituuve.supabase.co/storage/v1/object/public/Image/Logo/Logo%20STREAMO%20AI.png" style={{height:32}} alt="logo" />
-        <input 
-          type="text" 
-          placeholder="Cari lagu..." 
-          onChange={(e)=>setSearch(e.target.value)}
-          style={{padding:'10px 16px', borderRadius:500, border:'none', width:250, fontSize:14, background:'#242424', color:'white', outline:'none'}}
-        />
+      <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
+        <div style={{maxWidth:1200, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          <img
+            src="https://tfiihtfbilhyobituuve.supabase.co/storage/v1/object/public/Image/Logo/Logo%20STREAMO%20AI.png"
+            style={{height:36}}
+            alt="Streamo AI Logo"
+          />
+          <input
+            type="text"
+            placeholder="Cari lagu..."
+            onChange={(e)=>setSearch(e.target.value)}
+            style={{padding:'8px 14px', borderRadius:20, border:'1.5px solid #00b894', width:160, fontSize:14, outline:'none', color:'#00b894'}}
+          />
+        </div>
       </header>
 
       {/* CONTENT */}
-      <div style={{padding:'24px'}}>
-        <h2 style={{fontSize:24, marginBottom:20}}>Buat Kamu</h2>
-        
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:16}}>
-          {filtered.map(i=>(
-            <div key={i.id} onClick={()=>setPlaying(i)} style={{
-              background:'#181818', 
-              borderRadius:8, 
-              padding:12,
-              cursor:'pointer',
-              transition:'background 0.3s'
-            }}
-            onMouseOver={(e)=>e.currentTarget.style.background='#282828'}
-            onMouseOut={(e)=>e.currentTarget.style.background='#181818'}
-            >
-              <img src={i.cover_url} style={{width:'100%', borderRadius:6, aspectRatio:'1/1', objectFit:'cover', marginBottom:12}}/>
-              <h3 style={{fontSize:14, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{i.judul}</h3>
-              <p style={{fontSize:12, color:'#b3b3b3', margin:'4px 0 0'}}>ZIIPROJECT</p>
-            </div>
-          ))}
+      <div style={{padding:'30px 20px'}}>
+        <div style={{maxWidth:1200, margin:'0 auto'}}>
+          <h2 style={{color:'white', textAlign:'center', marginBottom:10, fontSize:24}}>Daftar Lagu</h2>
+          <p style={{color:'white', textAlign:'center', marginBottom:25, opacity:0.9}}>{filtered.length} Lagu Ditemukan</p>
+
+          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:20}}>
+            {filtered.map((i, index)=>(
+              <div key={i.id} onClick={()=>setPlayingIndex(index)} style={{
+                background:'white',
+                borderRadius:14,
+                padding:12,
+                boxShadow:'0 6px 15px rgba(0,0,0,0.15)',
+                transition:'transform 0.2s',
+                cursor:'pointer',
+                border: playingIndex === index? '2px solid #00b894' : '2px solid transparent'
+              }}
+              onMouseOver={(e)=>e.currentTarget.style.transform='translateY(-4px)'}
+              onMouseOut={(e)=>e.currentTarget.style.transform='translateY(0)'}
+              >
+                <img src={i.cover_url} style={{width:'100%', borderRadius:10, aspectRatio:'1/1', objectFit:'cover'}}/>
+                <h3 style={{color:'#00b894', margin:'10px 0 6px', fontSize:15, fontWeight:600}}>{i.judul}</h3>
+                <p style={{color:'#666', fontSize:12, margin:0}}>Klik untuk putar</p>
+              </div>
+            ))}
+          </div>
+
+          {filtered.length === 0 && <p style={{textAlign:'center', color:'white', marginTop:40}}>Lagu tidak ditemukan 😢</p>}
         </div>
       </div>
 
-      {/* PLAYER BAWAH KAYAK SPOTIFY */}
+      {/* PLAYER BAWAH VERSI PRO */}
       {playing && (
         <div style={{
-          position:'fixed', bottom:0, left:0, right:0, 
-          background:'#181818', borderTop:'1px solid #282828',
-          padding:'12px 16px', display:'flex', alignItems:'center', gap:16
+          position:'fixed', bottom:0, left:0, right:0,
+          background:'rgba(255,255,255,0.95)', backdropFilter:'blur(15px)',
+          padding:'12px 20px', display:'flex', alignItems:'center', gap:16,
+          boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894'
         }}>
-          <img src={playing.cover_url} style={{width:56, height:56, borderRadius:4}}/>
-          <div style={{flex:1}}>
-            <p style={{margin:0, fontSize:14, fontWeight:600}}>{playing.judul}</p>
-            <p style={{margin:0, fontSize:12, color:'#b3b3b3'}}>ZIIPROJECT</p>
+          <img src={playing.cover_url} style={{width:56, height:56, borderRadius:10}}/>
+
+          <div style={{flex:1, minWidth:0}}>
+            {/* JUDUL DIKECILIN JADI 1 BARIS */}
+            <p style={{
+              margin:0, fontSize:14, fontWeight:700, color:'#00b894',
+              whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
+            }}>
+              {playing.judul}
+            </p>
+            <p style={{margin:0, fontSize:12, color:'#666'}}>Streamo AI</p>
           </div>
-          <audio controls autoPlay style={{width:300, accentColor:'#1DB954'}} src={playing.mp3_url}></audio>
+
+          {/* TOMBOL PREV PLAY NEXT */}
+          <div style={{display:'flex', alignItems:'center', gap:12}}>
+            <button onClick={playPrev} style={{background:'none', border:'none', fontSize:22, cursor:'pointer', color:'#00b894'}}>⏮️</button>
+
+            <audio
+              ref={audioRef}
+              controls
+              autoPlay
+              onEnded={playNext}
+              style={{width:200, height:35, accentColor:'#00b894'}}
+              src={playing.mp3_url}
+            ></audio>
+
+            <button onClick={playNext} style={{background:'none', border:'none', fontSize:22, cursor:'pointer', color:'#00b894'}}>⏭️</button>
+          </div>
         </div>
       )}
+
+      {/* FOOTER */}
+      <footer style={{background:'rgba(0,0,0,0.15)', color:'white', textAlign:'center', padding:16, marginTop:30, fontSize:14}}>
+        <p>© 2026 Streamo AI by ZIIPROJECT</p>
+      </footer>
     </div>
   )
-                                             }
+          }

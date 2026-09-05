@@ -20,8 +20,7 @@ export default function Home() {
 
   return (
     <main className="bg-black text-white min-h-screen p-6">
-      <h1 className="text-4xl font-bold text-green-500 mb-8 tracking-wider">STREAMO AI</h1>
-
+      <h1 className="text-4xl font-bold text-white mb-8 tracking-wider">STREAMO AI</h1>
       {lagu.length === 0? (
         <p className="text-zinc-400">Belum ada lagu. Tambah di Supabase dulu ya</p>
       ) : (

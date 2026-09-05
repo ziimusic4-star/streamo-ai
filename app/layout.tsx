@@ -1,3 +1,4 @@
+import './globals.css'
 export const metadata = {
   title: 'STREAMO AI',
   description: 'Platform musik AI',

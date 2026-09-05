@@ -27,7 +27,7 @@ export default function Home() {
       {/* HEADER */}
       <header style={{background:'rgba(255,255,255,0.98)', padding:'12px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
         <div style={{maxWidth:1200, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          <h1 style={{color:'#00b894', margin:0, fontSize:20, fontWeight:700}}>🎵 Streamo</h1>
+          <h1 style={{color:'#00b894', margin:0, fontSize:20, fontWeight:700}}>STREAMO AI</h1>
           <input 
             type="text" 
             placeholder="Cari lagu..." 
@@ -67,7 +67,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={{background:'rgba(0,0,0,0.15)', color:'white', textAlign:'center', padding:16, marginTop:30, fontSize:14}}>
-        <p>© 2026 Streamo AI</p>
+        <p>© 2026 Streamo AI by ZIIPROJECT</p>
       </footer>
     </div>
   )

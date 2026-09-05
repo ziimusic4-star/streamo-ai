@@ -2,35 +2,24 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default function Home() {
-  const [lagu, setLagu] = useState<any[]>([])
+  const [data, setData] = useState<any[]>([])
 
   useEffect(() => {
-    async function getData() {
-      const { data } = await supabase.from('lagu').select('*')
-      setLagu(data || [])
-    }
-    getData()
+    supabase.from('lagu').select().then(res => {
+      console.log(res)
+      setData(res.data || [])
+    })
   }, [])
 
   return (
-    <main className="p-10">
-      <h1 className="text-2xl font-bold mb-5">Daftar Lagu</h1>
-      {lagu.length === 0 ? <p>Loading...</p> : 
-        lagu.map((item) => (
-          <div key={item.id} className="border p-3 mb-2 rounded">
-            {item.judul}
-          </div>
-        ))
-      }
-    </main>
-  )
-}      )}
-    </main>
+    <div style={{padding: 20}}>
+      <h1>Daftar Lagu</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
   )
 }

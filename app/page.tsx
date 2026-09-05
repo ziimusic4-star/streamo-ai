@@ -67,7 +67,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={{background:'rgba(0,0,0,0.2)', color:'white', textAlign:'center', padding:20, marginTop:40}}>
-        <p>© 2026 Streamo AI - Dibuat dengan ❤️</p>
+        <p>© 2026 Streamo AI - Dibuat Oleh ZIIPROJECT </p>
       </footer>
     </div>
   )

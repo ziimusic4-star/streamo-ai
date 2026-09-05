@@ -20,10 +20,9 @@ export default function Home() {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false)
   const [newPlaylistName, setNewPlaylistName] = useState('')
   const [isShuffle, setIsShuffle] = useState(false)
-  const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off') // off, one, all
+  const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  // LOAD DARI LOCALSTORAGE
   useEffect(() => {
     const fav = localStorage.getItem('streamo_favorites')
     const pls = localStorage.getItem('streamo_playlists')
@@ -31,7 +30,6 @@ export default function Home() {
     if(pls) setPlaylists(JSON.parse(pls))
   }, [])
 
-  // SIMPAN KE LOCALSTORAGE
   useEffect(() => {
     localStorage.setItem('streamo_favorites', JSON.stringify(favorites))
   }, [favorites])
@@ -71,7 +69,6 @@ export default function Home() {
     }
   }, [playingIndex, repeatMode])
 
-  // LIST BERDASARKAN TAB
   let baseList = lagu
   if(tab === 'favorit') baseList = lagu.filter(l => favorites.includes(l.id))
   if(tab === 'playlist' && activePlaylist) baseList = lagu.filter(l => playlists[activePlaylist]?.includes(l.id))
@@ -81,7 +78,6 @@ export default function Home() {
   )
 
   const playing = playingIndex!== null? filtered[playingIndex] : null
-
   const getRandomIndex = () => Math.floor(Math.random() * filtered.length)
 
   const playNext = () => {
@@ -93,7 +89,6 @@ export default function Home() {
     } else {
       nextIndex = (playingIndex + 1) % filtered.length
     }
-
     if(nextIndex === 0 && playingIndex === filtered.length - 1 && repeatMode === 'off') {
       setIsPlaying(false)
       return
@@ -133,24 +128,11 @@ export default function Home() {
     )
   }
 
-  // PLAYLIST FUNCTIONS
   const createPlaylist = () => {
     if(!newPlaylistName.trim()) return
     setPlaylists(prev => ({...prev, [newPlaylistName]: []}))
     setNewPlaylistName('')
     setShowPlaylistModal(false)
-  }
-  const addToPlaylist = (playlistName: string, songId: string) => {
-    setPlaylists(prev => ({
-     ...prev,
-      [playlistName]: prev[playlistName].includes(songId)? prev[playlistName] : [...prev[playlistName], songId]
-    }))
-  }
-  const removeFromPlaylist = (playlistName: string, songId: string) => {
-    setPlaylists(prev => ({
-     ...prev,
-      [playlistName]: prev[playlistName].filter(id => id!== songId)
-    }))
   }
 
   return (
@@ -163,30 +145,38 @@ export default function Home() {
         </div>
       </header>
 
-      {/* TABS */}
+      {/* TABS DENGAN ICON SVG */}
       <div style={{maxWidth:1200, margin:'0 auto', padding:'20px 20px 0'}}>
         <div style={{display:'flex', gap:10, background:'rgba(255,255,255,0.2)', padding:4, borderRadius:12, marginBottom:10}}>
-          <button onClick={()=>{setTab('semua'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='semua'? 'white' : 'transparent', color: tab==='semua'? '#00b894' : 'white', fontWeight:600}}>Semua</button>
-          <button onClick={()=>{setTab('favorit'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='favorit'? 'white' : 'transparent', color: tab==='favorit'? '#00b894' : 'white', fontWeight:600}}>❤️ Favorit ({favorites.length})</button>
-          <button onClick={()=>{setTab('playlist'); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='playlist'? 'white' : 'transparent', color: tab==='playlist'? '#00b894' : 'white', fontWeight:600}}>📁 Playlist</button>
+          <button onClick={()=>{setTab('semua'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='semua'? 'white' : 'transparent', color: tab==='semua'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+            Semua
+          </button>
+          <button onClick={()=>{setTab('favorit'); setActivePlaylist(null); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='favorit'? 'white' : 'transparent', color: tab==='favorit'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Favorit ({favorites.length})
+          </button>
+          <button onClick={()=>{setTab('playlist'); setPlayingIndex(null)}} style={{flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer', background: tab==='playlist'? 'white' : 'transparent', color: tab==='playlist'? '#00b894' : 'white', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+            Playlist
+          </button>
         </div>
 
-        {/* PLAYLIST MANAGER */}
         {tab === 'playlist' && (
           <div style={{display:'flex', gap:8, flexWrap:'wrap', marginBottom:15}}>
             {Object.keys(playlists).map(name => (
-              <button key={name} onClick={()=>{setActivePlaylist(name)}} style={{
-                padding:'6px 12px', borderRadius:20, border:'1px solid white', cursor:'pointer',
-                background: activePlaylist === name? 'white' : 'transparent',
-                color: activePlaylist === name? '#00b894' : 'white', fontSize:12
-              }}>{name} ({playlists[name].length})</button>
+              <button key={name} onClick={()=>{setActivePlaylist(name)}} style={{padding:'6px 12px', borderRadius:20, border:'1px solid white', cursor:'pointer', background: activePlaylist === name? 'white' : 'transparent', color: activePlaylist === name? '#00b894' : 'white', fontSize:12}}>
+                {name} ({playlists[name].length})
+              </button>
             ))}
-            <button onClick={()=>setShowPlaylistModal(true)} style={{padding:'6px 12px', borderRadius:20, border:'1px dashed white', background:'transparent', color:'white', cursor:'pointer', fontSize:12}}>+ Buat Playlist</button>
+            <button onClick={()=>setShowPlaylistModal(true)} style={{padding:'6px 12px', borderRadius:20, border:'1px dashed white', background:'transparent', color:'white', cursor:'pointer', fontSize:12, display:'flex', alignItems:'center', gap:4}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Buat Playlist
+            </button>
           </div>
         )}
       </div>
 
-      {/* MODAL BUAT PLAYLIST */}
       {showPlaylistModal && (
         <div onClick={()=>setShowPlaylistModal(false)} style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100}}>
           <div onClick={(e)=>e.stopPropagation()} style={{background:'white', padding:20, borderRadius:12, width:300}}>
@@ -197,7 +187,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* CONTENT */}
       <div style={{padding:'20px'}}>
         <div style={{maxWidth:1200, margin:'0 auto'}}>
           <p style={{color:'white', textAlign:'center', marginBottom:25, opacity:0.9}}>{filtered.length} Lagu</p>
@@ -205,14 +194,9 @@ export default function Home() {
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:20}}>
             {filtered.map((i, index)=>(
               <div key={i.id} onClick={()=>{setPlayingIndex(index); setIsPlaying(true)}} style={{background:'white', borderRadius:14, padding:12, boxShadow:'0 6px 15px rgba(0,0,0,0.15)', cursor:'pointer', border: playingIndex === index? '2px solid #00b894' : '2px solid transparent', position:'relative'}}>
-
-                {/* MENU TOMBOL */}
-                <div style={{position:'absolute', top:12, right:12, display:'flex', gap:5}}>
-                  <button onClick={(e)=>toggleFavorite(i.id, e)} style={{background:'rgba(255,255,255,0.9)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer'}}>
-                    {favorites.includes(i.id)? <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
-                  </button>
-                </div>
-
+                <button onClick={(e)=>toggleFavorite(i.id, e)} style={{position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.9)', border:'none', borderRadius:'50%', width:32, height:32, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                  {favorites.includes(i.id)? <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
+                </button>
                 <img src={i.cover_url} style={{width:'100%', borderRadius:10, aspectRatio:'1/1', objectFit:'cover'}}/>
                 <h3 style={{color:'#00b894', margin:'10px 0 6px', fontSize:15, fontWeight:600}}>{i.judul}</h3>
                 <p style={{color:'#666', fontSize:12, margin:0}}>{i.artis || 'Unknown Artist'}</p>
@@ -224,7 +208,7 @@ export default function Home() {
 
       {playing && <audio ref={audioRef} src={playing.mp3_url} />}
 
-      {/* PLAYER COMPACT + TOMBOL BARU */}
+      {/* PLAYER DENGAN ICON SVG */}
       {playing && (
         <div style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(255,255,255,0.98)', backdropFilter:'blur(15px)', boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894'}}>
           <div onClick={handleSeek} style={{width:'100%', height:3, background:'#d0e9e4', cursor:'pointer'}}><div style={{width:`${progress}%`, height:'100%', background:'#00b894'}}></div></div>
@@ -236,8 +220,8 @@ export default function Home() {
               <p style={{margin:0, fontSize:10, color:'#666', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{playing.artis || 'Unknown Artist'}</p>
             </div>
 
-            {/* TOMBOL PLAYER BARU */}
             <div style={{display:'flex', alignItems:'center', gap:8}}>
+              {/* SHUFFLE */}
               <button onClick={()=>setIsShuffle(!isShuffle)} style={{background:'none', border:'none', cursor:'pointer', padding:2}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill={isShuffle? '#00b894' : '#aaa'}><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4v.01L14 7.34 4.34 17H3v2h2l10-10.94V22h2V8.94L19.66 11l1.41-1.41L14.5 4z"/></svg>
               </button>
@@ -250,18 +234,17 @@ export default function Home() {
 
               <button onClick={playNext} style={{background:'none', border:'none', cursor:'pointer', padding:2}}><svg width="18" height="18" viewBox="0 0 24 24" fill="#00b894"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
 
-              <button onClick={()=>setRepeatMode(repeatMode === 'off'? 'all' : repeatMode === 'all'? 'one' : 'off')} style={{background:'none', border:'none', cursor:'pointer', padding:2}}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill={repeatMode!== 'off'? '#00b894' : '#aaa'}>
-                  <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
-                </svg>
-                {repeatMode === 'one' && <span style={{fontSize:8, position:'absolute', marginLeft:-14, marginTop:10}}>1</span>}
+              {/* REPEAT */}
+              <button onClick={()=>setRepeatMode(repeatMode === 'off'? 'all' : repeatMode === 'all'? 'one' : 'off')} style={{background:'none', border:'none', cursor:'pointer', padding:2, position:'relative'}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={repeatMode!== 'off'? '#00b894' : '#aaa'}><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                {repeatMode === 'one' && <span style={{fontSize:8, position:'absolute', bottom:2, right:2, color: '#00b894', fontWeight:700}}>1</span>}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <footer style={{background:'rgba(0,0,0,0.15)', color:'white', textAlign:'center', padding:16, marginTop:30, fontSize:14}}><p>© 2026 Streamo AI by ZIIPROJECT</p></footer>
+      <footer style={{background:'rgba(0,0,0.15)', color:'white', textAlign:'center', padding:16, marginTop:30, fontSize:14}}><p>© 2026 Streamo AI by ZIIPROJECT</p></footer>
     </div>
   )
-      }
+}

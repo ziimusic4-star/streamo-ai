@@ -19,14 +19,15 @@ export default function Home() {
   }, [supabase])
 
   return (
-    <main className="bg-black text-white min-h-screen p-6">
-      <h1 className="text-4xl font-bold text-white mb-8 tracking-wider">STREAMO AI</h1>
+    <main className="bg-white text-black min-h-screen p-6">
+      <h1 className="text-4xl font-bold text-black mb-8 tracking-wider">STREAMO AI</h1>
+
       {lagu.length === 0? (
-        <p className="text-zinc-400">Belum ada lagu. Tambah di Supabase dulu ya</p>
+        <p className="text-zinc-500">Belum ada lagu. Tambah di Supabase dulu ya</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {lagu.map((l) => (
-            <div key={l.id} className="bg-zinc-900 p-3 rounded-xl hover:bg-zinc-800 transition">
+            <div key={l.id} className="bg-zinc-100 p-3 rounded-xl hover:bg-zinc-200 transition">
               <img src={l.cover_url} className="rounded-lg mb-2 w-full aspect-square object-cover"/>
               <h3 className="font-bold text-sm">{l.judul}</h3>
               <audio controls src={l.mp3_url} className="w-full mt-2 h-8"></audio>

@@ -66,7 +66,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:90}}>
+    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:95}}>
 
       {/* HEADER */}
       <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
@@ -117,7 +117,7 @@ export default function Home() {
       {/* AUDIO HIDDEN */}
       {playing && <audio ref={audioRef} src={playing.mp3_url} onEnded={playNext} />}
 
-      {/* PLAYER BAWAH VERSI COMPACT MINI */}
+      {/* PLAYER BAWAH COMPACT + ARTIS */}
       {playing && (
         <div style={{
           position:'fixed', bottom:0, left:0, right:0,
@@ -134,22 +134,25 @@ export default function Home() {
             }}></div>
           </div>
 
-          {/* BARIS COMPACT 1 BARIS SAJA */}
-          <div style={{padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
-
-            {/* COVER KECIL */}
+          {/* BARIS 1: COVER + JUDUL + TOMBOL */}
+          <div style={{padding:'6px 12px', display:'flex', alignItems:'center', gap:10}}>
             <img src={playing.cover_url} style={{width:40, height:40, borderRadius:6}}/>
 
-            {/* JUDUL */}
             <div style={{flex:1, minWidth:0}}>
+              {/* JUDUL */}
               <p style={{
-                margin:0, fontSize:12, fontWeight:700, color:'#00b894',
+                margin:0, fontSize:12, fontWeight:700, color:'#00b894', lineHeight:1.3,
                 whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
               }}>{playing.judul}</p>
+              {/* ARTIS BARU - KECIL */}
+              <p style={{
+                margin:0, fontSize:10, color:'#666', lineHeight:1.2,
+                whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
+              }}>{playing.artis || 'Unknown Artist'}</p>
             </div>
 
-            {/* TOMBOL KECIL SEMUA */}
-            <div style={{display:'flex', alignItems:'center', gap:12}}>
+            {/* TOMBOL KECIL */}
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
               <button onClick={playPrev} style={{background:'none', border:'none', cursor:'pointer', padding:2}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#00b894">
                   <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
@@ -182,4 +185,4 @@ export default function Home() {
       </footer>
     </div>
   )
-    }
+  }

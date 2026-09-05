@@ -11,6 +11,8 @@ export default function Home() {
   const [lagu, setLagu] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [progress, setProgress] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
@@ -18,6 +20,20 @@ export default function Home() {
       setLagu(data || [])
     })
   }, [])
+
+  useEffect(() => {
+    if(audioRef.current) {
+      isPlaying? audioRef.current.play() : audioRef.current.pause()
+    }
+  }, [isPlaying, playingIndex])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if(!audio) return
+    const updateProgress = () => setProgress((audio.currentTime / audio.duration) * 100 || 0)
+    audio.addEventListener('timeupdate', updateProgress)
+    return () => audio.removeEventListener('timeupdate', updateProgress)
+  }, [playingIndex])
 
   const filtered = lagu.filter(l =>
     l.judul.toLowerCase().includes(search.toLowerCase())
@@ -28,15 +44,36 @@ export default function Home() {
   const playNext = () => {
     if(playingIndex === null) return
     setPlayingIndex((playingIndex + 1) % filtered.length)
+    setIsPlaying(true)
+    setProgress(0)
   }
 
   const playPrev = () => {
     if(playingIndex === null) return
     setPlayingIndex((playingIndex - 1 + filtered.length) % filtered.length)
+    setIsPlaying(true)
+    setProgress(0)
+  }
+
+  const togglePlay = () => setIsPlaying(!isPlaying)
+
+  const handleSeek = (e: any) => {
+    const audio = audioRef.current
+    if(!audio) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const percent = (e.clientX - rect.left) / rect.width
+    audio.currentTime = percent * audio.duration
+  }
+
+  const formatTime = (time: number) => {
+    if(isNaN(time)) return '0:00'
+    const m = Math.floor(time / 60)
+    const s = Math.floor(time % 60).toString().padStart(2, '0')
+    return `${m}:${s}`
   }
 
   return (
-    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:120}}>
+    <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:140}}>
 
       {/* HEADER */}
       <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
@@ -63,7 +100,7 @@ export default function Home() {
 
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:20}}>
             {filtered.map((i, index)=>(
-              <div key={i.id} onClick={()=>setPlayingIndex(index)} style={{
+              <div key={i.id} onClick={()=>{setPlayingIndex(index); setIsPlaying(true)}} style={{
                 background:'white',
                 borderRadius:14,
                 padding:12,
@@ -84,53 +121,74 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PLAYER BAWAH PAKE ICON SVG */}
+      {/* AUDIO HIDDEN */}
+      {playing && <audio ref={audioRef} src={playing.mp3_url} onEnded={playNext} />}
+
+      {/* PLAYER BAWAH DENGAN PROGRESS BAR FULL */}
       {playing && (
         <div style={{
           position:'fixed', bottom:0, left:0, right:0,
           background:'rgba(255,255,255,0.98)', backdropFilter:'blur(15px)',
-          padding:'10px 16px',
-          boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894',
-          display:'flex', flexDirection:'column', gap:8
+          padding:'12px 0',
+          boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894'
         }}>
 
-          {/* BARIS 1: COVER + JUDUL */}
-          <div style={{display:'flex', alignItems:'center', gap:10}}>
-            <img src={playing.cover_url} style={{width:48, height:48, borderRadius:8}}/>
-            <div style={{flex:1, minWidth:0}}>
-              <p style={{
-                margin:0, fontSize:13, fontWeight:700, color:'#00b894',
-                whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
-              }}>{playing.judul}</p>
-              <p style={{margin:0, fontSize:11, color:'#666'}}>Streamo AI</p>
-            </div>
+          {/* PROGRESS BAR FULL LEBAR */}
+          <div onClick={handleSeek} style={{
+            width:'100%', height:4, background:'#d0e9e4', cursor:'pointer', marginBottom:10
+          }}>
+            <div style={{
+              width:`${progress}%`, height:'100%', background:'#00b894',
+              transition:'width 0.1s linear'
+            }}></div>
           </div>
 
-          {/* BARIS 2: TOMBOL ICON SVG */}
-          <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:20}}>
+          <div style={{padding:'0 16px', display:'flex', flexDirection:'column', gap:8}}>
 
-            {/* PREV BUTTON */}
-            <button onClick={playPrev} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
-                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-              </svg>
-            </button>
+            {/* BARIS 1: COVER + JUDUL + WAKTU */}
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
+              <img src={playing.cover_url} style={{width:48, height:48, borderRadius:8}}/>
+              <div style={{flex:1, minWidth:0}}>
+                <p style={{
+                  margin:0, fontSize:13, fontWeight:700, color:'#00b894',
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
+                }}>{playing.judul}</p>
+                <p style={{margin:0, fontSize:11, color:'#666'}}>Streamo AI</p>
+              </div>
+              <p style={{fontSize:11, color:'#666', margin:0}}>
+                {formatTime(audioRef.current?.currentTime || 0)} / {formatTime(audioRef.current?.duration || 0)}
+              </p>
+            </div>
 
-            <audio
-              ref={audioRef}
-              controls
-              autoPlay
-              onEnded={playNext}
-              style={{width:'60%', maxWidth:300, height:32, accentColor:'#00b894'}}
-              src={playing.mp3_url}
-            ></audio>
+            {/* BARIS 2: TOMBOL CUSTOM */}
+            <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:24}}>
 
-            {/* NEXT BUTTON */}
-            <button onClick={playNext} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
-                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-              </svg>
-            </button>
+              {/* PREV */}
+              <button onClick={playPrev} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
+                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+              </button>
+
+              {/* PLAY/PAUSE */}
+              <button onClick={togglePlay} style={{
+                background:'#00b894', border:'none', borderRadius:'50%',
+                width:40, height:40, cursor:'pointer', display:'flex',
+                alignItems:'center', justifyContent:'center'
+              }}>
+                {isPlaying?
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg> :
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                }
+              </button>
+
+              {/* NEXT */}
+              <button onClick={playNext} style={{background:'none', border:'none', cursor:'pointer', padding:5}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b894">
+                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}

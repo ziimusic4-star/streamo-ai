@@ -24,10 +24,17 @@ export default function Home() {
   return (
     <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif'}}>
       
-      {/* HEADER */}
-      <header style={{background:'rgba(255,255,255,0.98)', padding:'12px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
+      {/* HEADER + LOGO BARU */}
+      <header style={{background:'rgba(255,255,255,0.98)', padding:'10px 20px', position:'sticky', top:0, backdropFilter:'blur(10px)', boxShadow:'0 2px 10px rgba(0,0,0,0.1)'}}>
         <div style={{maxWidth:1200, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          <h1 style={{color:'#00b894', margin:0, fontSize:20, fontWeight:700}}>STREAMO AI</h1>
+          
+          {/* LOGO GAMBAR */}
+          <img 
+            src="https://tfiihtfbilhyobituuve.supabase.co/storage/v1/object/public/Image/Logo/Logo%20STREAMO%20AI.png" 
+            style={{height:36}} 
+            alt="Streamo AI Logo" 
+          />
+          
           <input 
             type="text" 
             placeholder="Cari lagu..." 
@@ -40,7 +47,8 @@ export default function Home() {
       {/* CONTENT */}
       <div style={{padding:'30px 20px'}}>
         <div style={{maxWidth:1200, margin:'0 auto'}}>
-          <h2 style={{color:'white', textAlign:'center', marginBottom:25, fontSize:24}}>Daftar Lagu</h2>
+          <h2 style={{color:'white', textAlign:'center', marginBottom:10, fontSize:24}}>Daftar Lagu</h2>
+          <p style={{color:'white', textAlign:'center', marginBottom:25, opacity:0.9}}>{filtered.length} Lagu Ditemukan</p>
           
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:20}}>
             {filtered.map(i=>(
@@ -56,7 +64,7 @@ export default function Home() {
               >
                 <img src={i.cover_url} style={{width:'100%', borderRadius:10, aspectRatio:'1/1', objectFit:'cover'}}/>
                 <h3 style={{color:'#00b894', margin:'10px 0 6px', fontSize:15, fontWeight:600}}>{i.judul}</h3>
-                <audio controls style={{width:'100%', height:32}} src={i.mp3_url}></audio>
+                <audio controls style={{width:'100%', height:35, accentColor: '#00b894'}} src={i.mp3_url}></audio>
               </div>
             ))}
           </div>
@@ -71,4 +79,4 @@ export default function Home() {
       </footer>
     </div>
   )
-                      }
+            }

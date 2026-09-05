@@ -13,7 +13,20 @@ export default function Home() {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [tab, setTab] = useState<'semua' | 'favorit'>('semua') // tab baru
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  // LOAD FAVORITE DARI LOCALSTORAGE
+  useEffect(() => {
+    const fav = localStorage.getItem('streamo_favorites')
+    if(fav) setFavorites(JSON.parse(fav))
+  }, [])
+
+  // SIMPAN FAVORITE KE LOCALSTORAGE
+  useEffect(() => {
+    localStorage.setItem('streamo_favorites', JSON.stringify(favorites))
+  }, [favorites])
 
   useEffect(() => {
     supabase.from('lagu').select('*').then(({data})=>{
@@ -35,7 +48,9 @@ export default function Home() {
     return () => audio.removeEventListener('timeupdate', updateProgress)
   }, [playingIndex])
 
-  const filtered = lagu.filter(l =>
+  // FILTER BERDASARKAN TAB + SEARCH
+  const baseList = tab === 'favorit'? lagu.filter(l => favorites.includes(l.id)) : lagu
+  const filtered = baseList.filter(l =>
     l.judul.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -65,6 +80,14 @@ export default function Home() {
     audio.currentTime = percent * audio.duration
   }
 
+  // FUNCTION LIKE / UNLIKE
+  const toggleFavorite = (id: string, e: any) => {
+    e.stopPropagation() // biar ga ke trigger play
+    setFavorites(prev =>
+      prev.includes(id)? prev.filter(f => f!== id) : [...prev, id]
+    )
+  }
+
   return (
     <div style={{background:'linear-gradient(135deg, #00b894 0%, #0984e3 100%)', minHeight:'100vh', fontFamily:'Poppins, sans-serif', paddingBottom:95}}>
 
@@ -85,11 +108,30 @@ export default function Home() {
         </div>
       </header>
 
+      {/* TABS BARU */}
+      <div style={{maxWidth:1200, margin:'0 auto', padding:'20px 20px 0'}}>
+        <div style={{display:'flex', gap:10, background:'rgba(255,255,255,0.2)', padding:4, borderRadius:12}}>
+          <button onClick={()=>{setTab('semua'); setPlayingIndex(null)}} style={{
+            flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer',
+            background: tab==='semua'? 'white' : 'transparent',
+            color: tab==='semua'? '#00b894' : 'white', fontWeight:600
+          }}>Semua Lagu</button>
+          <button onClick={()=>{setTab('favorit'); setPlayingIndex(null)}} style={{
+            flex:1, padding:'8px 16px', borderRadius:8, border:'none', cursor:'pointer',
+            background: tab==='favorit'? 'white' : 'transparent',
+            color: tab==='favorit'? '#00b894' : 'white', fontWeight:600
+          }}>❤️ Favorit ({favorites.length})</button>
+        </div>
+      </div>
+
       {/* CONTENT */}
-      <div style={{padding:'30px 20px'}}>
+      <div style={{padding:'20px'}}>
         <div style={{maxWidth:1200, margin:'0 auto'}}>
-          <h2 style={{color:'white', textAlign:'center', marginBottom:10, fontSize:24}}>Daftar Lagu</h2>
           <p style={{color:'white', textAlign:'center', marginBottom:25, opacity:0.9}}>{filtered.length} Lagu Ditemukan</p>
+
+          {filtered.length === 0 && tab === 'favorit' && (
+            <p style={{color:'white', textAlign:'center'}}>Belum ada lagu favorit. Klik ❤️ di lagu buat nambahin</p>
+          )}
 
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:20}}>
             {filtered.map((i, index)=>(
@@ -100,14 +142,27 @@ export default function Home() {
                 boxShadow:'0 6px 15px rgba(0,0,0,0.15)',
                 transition:'transform 0.2s',
                 cursor:'pointer',
-                border: playingIndex === index? '2px solid #00b894' : '2px solid transparent'
+                border: playingIndex === index? '2px solid #00b894' : '2px solid transparent',
+                position:'relative'
               }}
               onMouseOver={(e)=>e.currentTarget.style.transform='translateY(-4px)'}
               onMouseOut={(e)=>e.currentTarget.style.transform='translateY(0)'}
               >
+                {/* TOMBOL LIKE */}
+                <button onClick={(e)=>toggleFavorite(i.id, e)} style={{
+                  position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.9)',
+                  border:'none', borderRadius:'50%', width:32, height:32, cursor:'pointer',
+                  display:'flex', alignItems:'center', justifyContent:'center'
+                }}>
+                  {favorites.includes(i.id)?
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> :
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  }
+                </button>
+
                 <img src={i.cover_url} style={{width:'100%', borderRadius:10, aspectRatio:'1/1', objectFit:'cover'}}/>
                 <h3 style={{color:'#00b894', margin:'10px 0 6px', fontSize:15, fontWeight:600}}>{i.judul}</h3>
-                <p style={{color:'#666', fontSize:12, margin:0}}>Klik untuk putar</p>
+                <p style={{color:'#666', fontSize:12, margin:0}}>{i.artis || 'Unknown Artist'}</p>
               </div>
             ))}
           </div>
@@ -125,7 +180,6 @@ export default function Home() {
           boxShadow:'0 -4px 20px rgba(0,0,0,0.15)', borderTop:'2px solid #00b894'
         }}>
 
-          {/* PROGRESS BAR TIPIS FULL */}
           <div onClick={handleSeek} style={{
             width:'100%', height:3, background:'#d0e9e4', cursor:'pointer'
           }}>
@@ -134,24 +188,20 @@ export default function Home() {
             }}></div>
           </div>
 
-          {/* BARIS 1: COVER + JUDUL + TOMBOL */}
           <div style={{padding:'6px 12px', display:'flex', alignItems:'center', gap:10}}>
             <img src={playing.cover_url} style={{width:40, height:40, borderRadius:6}}/>
 
             <div style={{flex:1, minWidth:0}}>
-              {/* JUDUL */}
               <p style={{
                 margin:0, fontSize:12, fontWeight:700, color:'#00b894', lineHeight:1.3,
                 whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
               }}>{playing.judul}</p>
-              {/* ARTIS BARU - KECIL */}
               <p style={{
                 margin:0, fontSize:10, color:'#666', lineHeight:1.2,
                 whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
               }}>{playing.artis || 'Unknown Artist'}</p>
             </div>
 
-            {/* TOMBOL KECIL */}
             <div style={{display:'flex', alignItems:'center', gap:10}}>
               <button onClick={playPrev} style={{background:'none', border:'none', cursor:'pointer', padding:2}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#00b894">
@@ -185,4 +235,4 @@ export default function Home() {
       </footer>
     </div>
   )
-  }
+    }
